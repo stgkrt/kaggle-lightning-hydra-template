@@ -1,0 +1,47 @@
+_target_: src.data.data_module.DataModule
+data_dir: ${dir.processed_dir}
+dataset_name: basic
+df_path: /kaggle/working/processed/train.csv
+preprocessed_img_size: ${preprocessed_img_size}
+in_channels: ${in_channels}
+batch_size: 64
+num_workers: 2
+pin_memory: true
+splits: ${splits}
+train_transforms:
+  _target_: src.data.augmentations.Augmentations
+  config:
+    aug_list:
+      - _target_: albumentations.MotionBlur
+        p: 0.2
+        blur_limit: 5
+      - _target_: albumentations.GaussNoise
+        p: 0.2
+        var_limit: 5
+      - _target_: albumentations.ShiftScaleRotate
+        p: 0.2
+        shift_limit: 0.0625
+        scale_limit: 0.1
+        rotate_limit: 10
+      - _target_: albumentations.Resize
+        always_apply: True
+        height: ${img_size}
+        width: ${img_size}
+        p: 1.0
+      - _target_: albumentations.CoarseDropout
+        max_holes: 16
+        max_height: 16
+        max_width: 8
+        min_holes: 1
+        min_height: 8
+        min_width: 8
+        p: 0.3
+valid_transforms:
+  _target_: src.data.augmentations.Augmentations
+  config:
+    aug_list:
+      - _target_: albumentations.Resize
+        always_apply: True
+        height: ${img_size}
+        width: ${img_size}
+        p: 1.0

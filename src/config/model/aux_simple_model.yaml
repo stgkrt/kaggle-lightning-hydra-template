@@ -1,0 +1,80 @@
+_target_: src.model.model_module.ModelModule
+
+model_architectures:
+  _target_: src.model.architectures.model_architectures.ModelArchitectures
+  model_config:
+    model_name: aux_simple_model
+    # backbone_name: "tf_efficientnet_b0_ns"
+    backbone_name: "tf_efficientnet_b3_ns"
+    pretrained: true
+    in_channels: ${in_channels}
+    img_encoder_out_channels: 32
+    feature_idx: -1
+    target_num: 25
+    out_channels: 3
+    aux_out_channels: 1
+    use_batchnorm: true
+    dropout: 0.3
+    img_size: ${img_size}
+
+criterion:
+  _target_: src.model.losses.LossModule
+  loss_config:
+    loss_name: "AuxBCESevereLoss"
+    pos_weight: null
+    aux_weight: 0.05
+
+metrics:
+  _target_ :  src.metrics.competition_metrics.CompetitionMetrics
+  metrics_type: "original"
+
+optimizer:
+  _target_: torch.optim.Adam
+  _partial_: true
+  # lr: 5e-5
+  lr: 0.0001
+  # lr: 0.0005
+  # lr: 0.001
+  # lr: 0.01
+  weight_decay: 1e-6
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingWarmRestarts
+  _partial_: true
+  T_0: ${trainer.max_epochs}
+  T_mult: 1
+  eta_min: 1e-6
+  last_epoch: -1
+  verbose: false
+
+
+compile: false
+
+oof_dir: ${dir.output_dir}
+
+target_columns:
+- 'spinal_canal_stenosis_l1_l2'
+- 'spinal_canal_stenosis_l2_l3'
+- 'spinal_canal_stenosis_l3_l4'
+- 'spinal_canal_stenosis_l4_l5'
+- 'spinal_canal_stenosis_l5_s1'
+- 'left_neural_foraminal_narrowing_l1_l2'
+- 'left_neural_foraminal_narrowing_l2_l3'
+- 'left_neural_foraminal_narrowing_l3_l4'
+- 'left_neural_foraminal_narrowing_l4_l5'
+- 'left_neural_foraminal_narrowing_l5_s1'
+- 'right_neural_foraminal_narrowing_l1_l2'
+- 'right_neural_foraminal_narrowing_l2_l3'
+- 'right_neural_foraminal_narrowing_l3_l4'
+- 'right_neural_foraminal_narrowing_l4_l5'
+- 'right_neural_foraminal_narrowing_l5_s1'
+- 'left_subarticular_stenosis_l1_l2'
+- 'left_subarticular_stenosis_l2_l3'
+- 'left_subarticular_stenosis_l3_l4'
+- 'left_subarticular_stenosis_l4_l5'
+- 'left_subarticular_stenosis_l5_s1'
+- 'right_subarticular_stenosis_l1_l2'
+- 'right_subarticular_stenosis_l2_l3'
+- 'right_subarticular_stenosis_l3_l4'
+- 'right_subarticular_stenosis_l4_l5'
+- 'right_subarticular_stenosis_l5_s1'

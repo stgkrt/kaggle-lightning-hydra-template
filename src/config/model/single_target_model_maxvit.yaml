@@ -1,0 +1,64 @@
+_target_: src.model.model_module.ModelModule
+
+model_architectures:
+  _target_: src.model.architectures.model_architectures.ModelArchitectures
+  model_config:
+    model_name: single_target_model
+    # backbone_name: "tf_efficientnet_b0_ns"
+    # backbone_name: "tf_efficientnet_b4_ns"
+    # backbone_name: "tf_efficientnet_b5_ns"
+    # backbone_name: "maxvit_tiny_rw_224"
+    backbone_name: "maxvit_rmlp_base_rw_384"
+    # backbone_name: "swin_base_patch4_window12_384"
+    pretrained: true
+    in_channels: ${in_channels}
+    img_encoder_out_channels: 256 # not used
+    feature_idx: 3 # not used
+    target_num: 1 # not used
+    out_channels: 3
+    aux_out_channels: 1 # not used
+    use_batchnorm: true
+    dropout: 0.3
+    drop_path_rate: 0.3
+    img_size: ${img_size}
+
+criterion:
+  _target_: src.model.losses.LossModule
+  loss_config:
+    # loss_name: "BCEWithOnehotLoss"
+    # loss_name: "WeightedBCEWithOnehotLoss"
+    loss_name: "WeightedSmoothBCEWithOnehotLoss"
+    # loss_name: "BinaryWeightedBCEWithOnehotLoss"
+    # loss_name: "SeverePosWeightedBCEWithOnehotLoss"
+    # loss_name: "ModDisBCEWithOnehotLoss"
+    pos_weight: null
+    aux_weight: 0.3 # not used
+
+metrics:
+  _target_ :  src.metrics.competition_metrics.CompetitionMetrics
+  metrics_type: "original"
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  # lr: 1e-3
+  lr: 1e-4
+  # lr: 0.0001 # maxvit_tiny_rw_224, swin_tiny_patch4_window7_224
+  weight_decay: 1e-2
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingWarmRestarts
+  _partial_: true
+  T_0: ${trainer.max_epochs}
+  T_mult: 1
+  eta_min: 1e-6
+  # eta_min: 1e-9
+  last_epoch: -1
+  verbose: false
+
+
+compile: false
+
+oof_dir: ${dir.output_dir}
+
+target_columns: []
